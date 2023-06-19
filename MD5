@@ -1,0 +1,11 @@
+13f3bdfa52d1ff0578fc0baa9f494a87 *DESCRIPTION
+4ea6c5b119d44705ac48d36f55f338ea *NAMESPACE
+c366fd4080ae26d1cdabf9f6af3b2b29 *R/base2base.R
+94a8531f437d8427870534166f23aac9 *R/bigBoolean.R
+3800a4c249682a0ffbe1be920382aaa6 *R/noExp.R
+6eb136d8a843c2e1d204a967c1d1282f *build/partial.rdb
+5adf83d39437ac58b67cff09d7a9710a *man/base2base.Rd
+b2406a983fb672e7fc9f7678188df4dc *man/bigAnd.Rd
+0626c6d781769521ab90d47f98e30bb0 *man/bigBits-package.Rd
+2cf5ed430c396e65f55bb5ddcd992a27 *man/buildBinaries.Rd
+f188973c61f4851b3e597ca22ba8d6bf *man/noExp.Rd
