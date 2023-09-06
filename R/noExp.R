@@ -5,7 +5,7 @@
 noExp <- function(x) {
 # just in case...
 	x <- tolower(x) # incase of "E" for exponent
-# remove plus signs, but keep minus signs
+# remove plus signs, but keep minus signs (base2base should have done this, but in case this func gets used externally)
 	x <- gsub('[+]','', x)
 	xsplit <- unlist(strsplit(x,''))
 	finde <- grep('e',xsplit)
@@ -21,10 +21,9 @@ noExp <- function(x) {
 	xexpn <- as.numeric(paste0(xexp,collapse = '',sep =''))
 #xmant includes decimal part		
 	xmant <- xsplit[1:(finde-1)]
-# now  remove the '.' if it's there
+# now  remove the decimal cha if it's there
 # first, for decimal components
 	if(length(finddot)) {
-		#		regit <- regexpr('[.]{1}[0-9]{1,}', x)
 		regit <- regexpr(paste0('[',thedec,']{1}[0-9]{1,}'), x)
 # will return -1 if things are bad in certain ways
 		if(  xexpn > 0){
@@ -42,12 +41,11 @@ noExp <- function(x) {
 		# deldigx is >= 0 , keep all digits
 				xexpn <- deldigx 
 			}	
-	# now remove the dot and add zeros as needed
+	# now remove the decimal char and add zeros as needed
 			xout <- xsplit[1:(finddot-1)]
 			xout <- paste0(c(xout,decdigs),sep='',collapse='')
 			xout <- paste0(c(xout, rep('0', times= xexpn)), sep='',collapse='')
 			} 	
-		
 		} else {
 	# xexpn is 0 or neg
 	# xout starts here as the stuff to left of dot
@@ -70,7 +68,6 @@ noExp <- function(x) {
 				xout <- paste0(c(xmant[1:negdel]), sep='',collapse='')
 				} else xout <- 0
 		}
-	}	# end of the no-dot else section
-			
+	}	# end of the no-dot else section			
 	return(xout)
 }

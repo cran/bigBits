@@ -5,7 +5,7 @@
 Function which converts arbitrary-size integers from any base to any base. 
 }
 \description{
-This function accepts inputs in  any base from 2 through 36 and produces the same value in any selected base from 2 through 36. This includes options for signed and 2's complement binary data. 
+This function accepts inputs in  any base from 2 through 36 and produces the same value in any selected base from 2 through 36. This includes options for signed and 2s complement binary data. 
 }
 \usage{
 base2base(x,frombase=10, tobase=2, classOut=c('bigz', 'mpfr',
@@ -29,10 +29,10 @@ Specify the class of the output. This only has meaning when \code{tobase} is 10;
 This applicable only when the output is in base 2. Specifies how many binary digits are to be generated.  If this value is less than that necessary to contain the output value, the number of bits will be increased to a 4*N value. The default is zero, which allows the function to calculate the minimum 4*N bits required. 
 }
   \item{inTwosComp}{
-Only checked if \code{frombase} is 2.  If FALSE, (the default), the input is treated as a binary that is positive unless a negative sign is present.  If TRUE, as a 2's complement binary. 
+Only checked if \code{frombase} is 2.  If FALSE, (the default), the input is  positive unless a negative sign is present.  If TRUE, the input is handled as a 2s complement binary. 
 }
   \item{outTwosComp}{
-Only checked if \code{tobase} is 2.  If FALSE, (the default), the output is  signed binary.  If TRUE,  a 2's complement binary.
+Only checked if \code{tobase} is 2.  If FALSE, (the default), the output, if negative, includes a "-" sign.  If TRUE,  a 2's complement binary.
 }
 }
 \details{
@@ -42,7 +42,7 @@ Inputs in hex format must be character strings.  This is because the command par
 }
 \value{
 A list containing the converted value(s). Unless \code{tobase} is 10, each element is a character string.  When \code{tobase} is equal to 10, the output class is specified with the argument \code{classOut} .  
-
+Note: if an input or output is incompatible with the specified input or output base, a dummy value "%no" if character, or "NA" if a number-like class,  is returned along with a warning message describing the error. 
 }
 
 \author{
@@ -65,6 +65,6 @@ Author and Maintainer:Carl Witthoft \email{carl@witthoft.com}
 (base2base('0111',2,2,inTwosComp=TRUE, outTwosComp= FALSE))
 (base2base(1e55,10,16)) #loses precision before even starting
 (base2base('1e55',10,16)) #works
-(base2base('t7w2hk',36, 10))
+(base2base('1767707668033969' , 10, 36))
 }
 

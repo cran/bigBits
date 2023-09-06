@@ -7,7 +7,7 @@ Function to convert values to binary form
 This function is intended primarily for internal use by the \code{big*} Boolean functions. Its job is to take an input in any base, in almost any class (numeric, character, etc) and generate the binary form of the same value. 
 }
 \usage{
-buildBinaries(x, y = NULL, inBase, inTwosComp = FALSE, binSize = 0)
+buildBinaries(x, y= NULL,inBase, inTwosComp = FALSE, binSize = 32)
 }
 \arguments{
   \item{x,y}{
