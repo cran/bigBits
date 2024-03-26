@@ -1,4 +1,5 @@
 # Revisions
+# feb 2024 allow "binSize" to prepend zeroes to any base (as string)
 # June-July 2023 fixed bug related to log() fun returning floating-point precision
 #   errors that caused floor() to be too small. 
 # May 2023: fixed bug related to lists vs. bigz objects.  Force numerics to "floor" to be integers. Returns non-invisibly now. 
@@ -10,9 +11,14 @@
 # catch bug when input is zero
 # 
 
+# TODO
+# accept any value. separate integer and fraction & pass fraction to fracB2B.
+#    But warn that bigq will NEVER be exact.
+
 # IMPORTANT:  
 #  When binSize is too small to fit , we override it. 
 # Otherwise, We only extend size to specified binSize, OR if 2's comp is invoked for the output, we will extend to smallest 4N bitsize >= binSize 
+ 
 
 base2base <- function(x,frombase=10, tobase=2, classOut=c('bigz', 'mpfr', 'numeric','character') , binSize = 0, inTwosComp = FALSE,  outTwosComp = FALSE ) {
 if(!(2<=frombase && 36 >= frombase && 2<=tobase && 36>= tobase)){
@@ -24,8 +30,10 @@ inclass <- class(x)
 #  pick the decimal point character based on Sys.localeconv()[1]	
 thedec <- Sys.localeconv()[1]
 
+# Feb 2024 moved this forcing inside the "if output is binary" sections.
 # force nonzero binsize to power of 4
-if(binSize >0) binSize <- binSize + 3 - (binSize -1) %%4
+#if(binSize >0) binSize <- binSize + 3 - (binSize -1) %%4
+
 # For safety later on, and to be sure we 'catch' 2s comp negative numbers
 if (frombase !=2){
 	inTwosComp = FALSE
@@ -33,7 +41,10 @@ if (frombase !=2){
 		if(inTwosComp) x <- as.character(x)
 	}
 # another safety
-if (tobase !=2) outTwosComp = FALSE
+if (tobase !=2) outTwosComp = FALSE else {
+# force nonzero binsize to power of 4
+	if(binSize >0) binSize <- binSize + 3 - (binSize -1) %%4
+	}
 if (Rmpfr::is.mpfr(x)) x <- Rmpfr::.mpfr2bigz(x)
 # check for gmp::is.bigz() and convert that to char as well
  if(!is.list(x)) x <- as.list(x)
@@ -200,7 +211,11 @@ for (jl in 1:length(x) ) {
 		if(mout[powM+1] == 0 )	mout <- mout[-(powM+1)] 	
 	 		 	}
 # just start with:
-	if(isPos && tobase == 2){
+# CHANGE Jan 24: split so all isPos get handled either in binary code or in all other bases. 
+#	if(isPos && tobase == 2){
+#	browser()
+	if(isPos) {
+		if(tobase == 2){
 		ktmp <- allChar[rev(as.numeric(mout)+1)]
 		klen <- length(ktmp)
 		if(outTwosComp && ktmp[1] == '1'){
@@ -213,13 +228,20 @@ for (jl in 1:length(x) ) {
 # need this for when binSize is zero
 		ktmp <- c(rep('0',times = 3 -(3+klen)%%4),ktmp)
 		theans[[jl]] <- paste0(c(ktmp) ,sep='',collapse='')
-	} else{
-		theans[[jl]] <- paste0(allChar[rev(as.numeric(mout)+1)],sep='',collapse='')
-		}	#end of if isPos&&tobase==2
-	
-# TODO:  Probably refactor all my if/else/else/... to be comprehendable. 
+	} else {
+# all other bases, positive value
+#  stick in binSize fix here
+			jltmp <- paste0(allChar[rev(as.numeric(mout)+1)],sep='',collapse='')
+			jlen <- length(jltmp)
+			jltmp <- c(rep('0',times = max(0,binSize - jlen)), jltmp)
+			theans[[jl]] <- jltmp 
+#   paste0(allChar[rev(as.numeric(mout)+1)],sep='',collapse='')
+		}	#end of if else tobase==2
+	}  else {
+# it's !isPos 
 # remember outTwosComp is forced to FALSE if tobase != 2		
-	 if (!isPos) {
+#	 if (!isPos) {
+		theans[[jl]] <- paste0(allChar[rev(as.numeric(mout)+1)],sep='',collapse='')
 # I made xchar stuff positive for 2s comp inputs
 # But I didn't make theans[[]] include the lead zero
 			jltmp <- unlist(strsplit(theans[[jl]][1],'') )
@@ -264,14 +286,21 @@ for (jl in 1:length(x) ) {
 # need this for when binSize is zero
 					jltmp <- c(rep('0',times = 3 -(3+jlen)%%4),jltmp)	
 					theans[[jl]] <- paste0(c(jltmp), sep='', collapse='')
-				}
+				}else {
+#  new thing to allow sticking zeros in front of any base.	
+					jlen <- length(jltmp)
+					jltmp <- c(rep('0',times = max(0,binSize - jlen)), jltmp)
+					theans[[jl]] <- paste0(jltmp,sep='',collapse='')
+			}
 				theans[[jl]] <- paste0(c('-',theans[[jl]]), sep='', collapse='')
-			} 	
+			}  #end of if tobase ==2 else	
 				
-		} # end of if !isPos
+		} # end of the "else" for !isPos
+#	} # end of if isPos
 } #end of for jl
 # as.bigz thinks a lead '0' means octal, so to be on the safe side
 # strip lead zeros 
+# browser()
 if (tobase == 10 ) {
 	switch(classOut[1], 
 		'numeric'= for(jj in 1:length(theans)) theans[[jj]] <- as.numeric(theans[[jj]]),
@@ -285,7 +314,17 @@ if (tobase == 10 ) {
 				theans[[jj]] <- gmp::as.bigz(theans[[jj]])
 			} 
 		},
-		'mpfr'= for(jj in 1:length(theans) ) theans[[jj]] <- Rmpfr::.bigz2mpfr(gmp::as.bigz(theans[[jj]]))
+# but if want this to work, have to remove and put back the zeroes because again bigz 
+# thinks I fed it an octal.		
+		'mpfr'=  {
+			for(jj in 1:length(theans) ) {
+										if (nchar(theans[[jj]]) > 1){
+					theans[[jj]]  <- gsub('^0{1,}', '', theans[[jj]])
+					theans[[jj]]  <- gsub('^-0{1,}', '-', theans[[jj]])
+					}
+			 theans[[jj]] <- Rmpfr::.bigz2mpfr(gmp::as.bigz(theans[[jj]]))
+			 }
+		},
 	)
 }
 return(theans)

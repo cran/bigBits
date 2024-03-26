@@ -1,1 +1,4 @@
+* rev 1.2 argument "binSize" now will prepend zeroes to output in any base
+* rev 1.1.2 minor upgrades; documentation corrections.
+* rev 1.1.1 :fixed an 'Rd' file because the interpreter is too smart for its own good. 
 * rev 1.1: Added the function "fracB2B" to convert the fractional part of numbers. Added bigRotate function.  Moved an upgraded version of base2base into this package.  Fixed a number of bugs related to corner-case inputs. Where applicable, set default binary data size to 32 bits.   

@@ -1,7 +1,11 @@
+#TODO
+# allow mpfr inputs. use formatDec(x) to convert to char string
+
 # Convert ONLY the fractional part, throwing away any integer part. Live with it. 
  fracB2B <- function( x,  inBase = 10, outBase = 16, maxdig = 0) {
 # input validation
-if (!is(x[[1]], 'character') && !is(x[[1]],'numeric')) stop('Illegal input class. Use character strings or numerics.')
+if(is(x[[1]], 'mpfr') )  x <- formatDec(x)
+if (!is(x[[1]], 'character') && !is(x[[1]],'numeric')) stop('Illegal input class. Use character strings, mpfrs, or numerics.')
 if(!(2<=inBase && 36 >= inBase && 2<=outBase && 36>= outBase)){
 	stop('Both bases must be in range 2:36')
 	}

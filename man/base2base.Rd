@@ -14,7 +14,7 @@ base2base(x,frombase=10, tobase=2, classOut=c('bigz', 'mpfr',
 }
 \arguments{
   \item{x}{
-A value or vector or list of values which are to be converted. The class can generally be numeric, mpfr, bigz, or character strings. See Details for more information. 
+A value or vector or list of values which are to be converted. The class can generally be numeric, mpfr, bigz, or character strings. Any fractional part is removed, leaving just the integer portion.  See Details for more information. 
 }
   \item{frombase}{
 The base of the input \code{x}. If the contents of \code{x} are incompatible with the specified base, a warning is issued and that value is skipped (i.e. if \code{x} has multiple values, \code{base2base} will keep running and process the other values). Default is 10
@@ -26,7 +26,7 @@ The desired base of the output. Default is 2.
 Specify the class of the output. This only has meaning when \code{tobase} is 10; all other bases are returned as character strings. Warning: if the input is larger than the max integer size on your system and "numeric" is selected, there will be a roundoff/truncation error.  
 }
   \item{binSize}{
-This applicable only when the output is in base 2. Specifies how many binary digits are to be generated.  If this value is less than that necessary to contain the output value, the number of bits will be increased to a 4*N value. The default is zero, which allows the function to calculate the minimum 4*N bits required. 
+ Specifies how many digits are to be generated.  If this value is less than that necessary to contain the output value, the number of digits will be increased to match.  If the output is binary, the final number of digits is expanded to a 4*N value. The default is zero, which allows the function to calculate the minimum  bits required. Note: for obvious reasons, this only applies to character-class outputs. 
 }
   \item{inTwosComp}{
 Only checked if \code{frombase} is 2.  If FALSE, (the default), the input is  positive unless a negative sign is present.  If TRUE, the input is handled as a 2s complement binary. 
@@ -42,7 +42,7 @@ Inputs in hex format must be character strings.  This is because the command par
 }
 \value{
 A list containing the converted value(s). Unless \code{tobase} is 10, each element is a character string.  When \code{tobase} is equal to 10, the output class is specified with the argument \code{classOut} .  
-Note: if an input or output is incompatible with the specified input or output base, a dummy value "%no" if character, or "NA" if a number-like class,  is returned along with a warning message describing the error. 
+Note: if an input or output is incompatible with the specified input or output base, a dummy value "\%no" if character, or "NA" if a number-like class,  is returned along with a warning message describing the error. 
 }
 
 \author{
@@ -53,7 +53,7 @@ Author and Maintainer:Carl Witthoft \email{carl@witthoft.com}
 \seealso{
 \code{\link[base]{strtoi}}
 \code{\link[base]{as.hexmode}}
-
+\code{fracB2B}
 }
 \examples{
 (base2base(12.4e1,10,16))
