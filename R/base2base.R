@@ -20,10 +20,12 @@
 # Otherwise, We only extend size to specified binSize, OR if 2's comp is invoked for the output, we will extend to smallest 4N bitsize >= binSize 
  
 
-base2base <- function(x,frombase=10, tobase=2, classOut=c('bigz', 'mpfr', 'numeric','character') , binSize = 0, inTwosComp = FALSE,  outTwosComp = FALSE ) {
+base2base <- function(x, frombase=10, tobase=2, classOut=c('bigz', 'mpfr', 'numeric','character') , binSize = 0, inTwosComp = FALSE,  outTwosComp = FALSE ) {
 if(!(2<=frombase && 36 >= frombase && 2<=tobase && 36>= tobase)){
 	stop('Both bases must be in range 2:36')
 }
+classOut <- match.arg(classOut)
+# browser()
 allChar <- c(0:9,letters)# validate by checking allChar[1:frombase]
 theans <-list()  
 inclass <- class(x)
@@ -124,12 +126,15 @@ for (jl in 1:length(x) ) {
 # but if decimal and NO e, take floor()
 #subtle bug: if idiot entered a hex, e.g.  '3e4', this if() will catch it.  Best I can do is make sure there's at least one char BEFORE an "e"
 # Fixed 29aug2023
+#browser()
 	if(frombase == 10 && length(grep('e',xchar)) && grep('e',xtmp)>1 ) {
 				xchar <- noExp(xchar)
 				xtmp <- unlist(strsplit(xchar,split=''))
 	#  don't  make x[[jl]] numeric as that buggers bigz, for one thing. 
 			} else 	if(length(grep(paste0('[',thedec,']'), xchar) ) ) {
-				xchar <- gsub(paste0('[',thedec,'].{,}$'),'',xchar)
+	# looks like bug here - if it's xxx.(anything),that {,} requires a first zero {0,}
+#				xchar <- gsub(paste0('[',thedec,'].{,}$'),'',xchar)
+				xchar <- gsub(paste0('[',thedec,'].{0,}$'),'',xchar)
 				warning('data to right of decimal removed. Failure may occur.')
 				xtmp <- unlist(strsplit(xchar,split=''))	
 			}	
@@ -155,6 +160,8 @@ for (jl in 1:length(x) ) {
 		foo <- strtoi(xchar,frombase)
 # same fix for precision rounding errors as the "else" below		
 		powM <- floor(log(foo,tobase)) +1  # how many places needed
+if ( !(length(powM)) || !is.numeric(powM) || powM < 0) browser()
+
 		mout <- rep('0',powM+1) 
 	#remember leftmost element of vector is index 1
 #when powM = 0 this would cause 'trouble'
@@ -179,6 +186,7 @@ for (jl in 1:length(x) ) {
 		} 
 	} else {
 #big number so use gmp and do things the hard way,loop over x terms
+# browser()  # bug -- somehow my mpfr input failed to get the decimal part removed???
 			foo <- gmp::as.bigz(0)   
 			xrev <- rev(xtmp)
 			for (jg in length(xtmp):1){
@@ -196,6 +204,7 @@ for (jl in 1:length(x) ) {
 			gtobase <- gmp::as.bigz(tobase)
 # foo == 2^62 returns a log 61.99999..fix by just adding one
 			powM <- floor(log(foo,gtobase)) + 1 # how many places will I need
+if (!length(powM) || !is.numeric(powM) || powM < 0) browser()
 			mout <- rep('0',powM+1) 
 			if(powM >0 ) {	
 		#remember leftmost element of vector is index 1 
@@ -300,6 +309,7 @@ for (jl in 1:length(x) ) {
 } #end of for jl
 # as.bigz thinks a lead '0' means octal, so to be on the safe side
 # strip lead zeros 
+# but if I feed it just plain '00' this may lead to a null argument
 # browser()
 if (tobase == 10 ) {
 	switch(classOut[1], 
@@ -325,6 +335,8 @@ if (tobase == 10 ) {
 			 theans[[jj]] <- Rmpfr::.bigz2mpfr(gmp::as.bigz(theans[[jj]]))
 			 }
 		},
+	#default I think. Not sure why this worked before
+	   ''
 	)
 }
 return(theans)

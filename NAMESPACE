@@ -2,5 +2,5 @@ export("base2base", "bigAnd", "bigNot", "bigOr", "bigShiftL", "bigShiftR",
        "bigXor", "buildBinaries", "noExp","fracB2B")
 exportPattern("^[[:alpha:]]+")
 importFrom("gmp", "as.bigz", "as.bigq","pow.bigq", "is.bigz", "numerator" , "denominator")
-importFrom("Rmpfr", "mpfr",  ".mpfr2bigz", ".bigz2mpfr", "is.mpfr", "formatDec")
+importFrom("Rmpfr", "mpfr",  ".mpfr2bigz", ".bigz2mpfr", "is.mpfr", "formatDec", ".bigq2mpfr")
 importFrom("methods", "is", "as")

@@ -11,7 +11,7 @@ fracB2B( x, inBase = 10, outBase = 16, maxdig = 0)
 }
 \arguments{
  \item{x}{
-A value or vector or list of values which are to be converted. The class can generally be numeric, mpfr, or character strings. Any integer part is removed, as only the fractional part is converted with this function.  See Details for more information. 
+A value or vector or list of values which are to be converted. The class can generally be numeric, mpfr,bigz,bigq, or character strings. Any integer part is removed, as only the fractional part is converted with this function.  See Details for more information. 
 }
  \item{inBase}{
 The base of the input \code{x}, in the range 2 through 36. If the contents of \code{x} are incompatible with the specified base, a warning is issued and that value is skipped (i.e. if \code{x} has multiple values, \code{base2base} will keep running and process the other values). Default is 10.
