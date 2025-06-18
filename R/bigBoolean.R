@@ -31,6 +31,7 @@ for(jj in 1:length(x)) {
 }
  
 bigAnd <- function(x, y, inBase = 10, outBase = 10,  inTwosComp = TRUE) { 
+if(!length(x) || is.na(x)  ) browser()
 xlen <- length(x)
 ylen <- length(y)
 if(ylen < xlen) {
@@ -87,7 +88,6 @@ for(jj in 1:length(x)) {
 #   note- outTwosComp ignored unless outBase is 2
 bigNot <- function(x,  inBase = 10, outBase = 10,  binSize = 32, inTwosComp = TRUE, outTwosComp = TRUE) {
  out <- gmp::as.bigz(rep(0,times=length(x)))
-# browser()
 # Safety:
 	if(inBase != 2) inTwosComp = FALSE
 # thebins$xbin will always a binary 2's comp string 
@@ -133,7 +133,7 @@ bigNot <- function(x,  inBase = 10, outBase = 10,  binSize = 32, inTwosComp = TR
 #Note:  rep() has a default argument "times" ==1 , so failure to enter a "shift" arg
 # results in shift value of 1
 bigShiftL <- function(x, shift = 1,  inBase = 10 , outBase = 10, binSize = 32, inTwosComp = TRUE) {
-#browser()
+
  out <- gmp::as.bigz(rep(0,times=length(x)))
 	for(jj in 1:length(x)) {
 	thebins <- buildBinaries(x[[jj]], y=NULL, inBase,inTwosComp = inTwosComp)
@@ -151,7 +151,7 @@ bigShiftL <- function(x, shift = 1,  inBase = 10 , outBase = 10, binSize = 32, i
 		otmp <- unlist(paste0(shifted,sep='',collapse='') )
 		
 # provide output in source 'base' and class. for binary, always return 2s comp
-		out[jj] <- base2base(otmp,2, 10, inTwosComp=TRUE, outTwosComp=TRUE)[[1]] 
+		out[jj] <- base2base(otmp,2, 10, binSize= binSize, inTwosComp=TRUE, outTwosComp=TRUE)[[1]] 
 # now convert classes of base10 items. Note: while base2base returns same class as input,
 #  the input to bigShift* is not the class returned when converting 'out' in the line above. but out[] is bigz by default when inBase == 10 
 }
@@ -163,7 +163,7 @@ bigShiftL <- function(x, shift = 1,  inBase = 10 , outBase = 10, binSize = 32, i
 # have to reset type - use a temp
 			charout <- rep('0',times=length(out))	
 			for (jc in 1:length(out)) {				
-			charout[jc] <- as.character((base2base(out[jc], 10, outBase, inTwosComp = TRUE, outTwosComp = inTwosComp) )[[1]]  )
+			charout[jc] <- as.character((base2base(out[jc], 10, outBase,binSize=binSize, inTwosComp = TRUE, outTwosComp = inTwosComp) )[[1]]  )
 			}
 			out <- charout 
 	}
@@ -172,9 +172,11 @@ bigShiftL <- function(x, shift = 1,  inBase = 10 , outBase = 10, binSize = 32, i
 }
 
 # PROBLEM with  negative numbers.  bitwShiftR assumes 32-bit binary 2scomp.  But given an arbitrary size input, the output , for a shift of one, move -1 (11111...) to 2^(N-1) -1 , where N includes te sign bit. This func will default to max(inBase,32,min_rq'd_for_magnitude_of_x)
+# fixedBUG: sending x==0 causes trouble in indices
+# fixedBUg: failed to pass input binSize to calls 
 bigShiftR <- function(x, shift = 1,  inBase = 10, outBase = 10, binSize = 32, inTwosComp = TRUE) {
 #default binary size is 32 to match bitwShiftR 	
-#browser()
+if(!length(x) || is.na(x)) browser()
  out <- gmp::as.bigz(rep(0,times=length(x)))
 	for(jj in 1:length(x)) {
 	thebins <-buildBinaries(x[[jj]], y=NULL, inBase, binSize = 32, inTwosComp = inTwosComp)
@@ -184,8 +186,7 @@ bigShiftR <- function(x, shift = 1,  inBase = 10, outBase = 10, binSize = 32, in
 		shifted <- c(rep(0,times= shift),shifted)		
 		otmp <- unlist(paste0(shifted,sep='',collapse='') )	
 # convert to 10 and then back to inbase
-# browser()
-		out[[jj]] <- base2base(otmp, 2, 10, binSize = 32, inTwosComp=TRUE, outTwosComp=TRUE)[[1]]
+		out[[jj]] <- base2base(otmp, 2, 10, binSize = binSize, inTwosComp=TRUE, outTwosComp=TRUE)[[1]]
 	}
 # provide output in source 'inBase'
 	if(is(x,'mpfr') || is(x,'mpfr1')) {
@@ -194,9 +195,10 @@ bigShiftR <- function(x, shift = 1,  inBase = 10, outBase = 10, binSize = 32, in
 		out <- as.numeric(out[[1]])
 	} else if (is(x,'character')){
 	# have to reset type - use a temp
-			charout <- rep('0',times=length(out))	
+			charout <- rep('0',times=length(out))
+# since b2b defaults to binSize 0, need to spec in here
 			for (jc in 1:length(out)) {				
-			charout[jc] <- as.character((base2base(out[jc], 10, outBase, inTwosComp = TRUE, outTwosComp = inTwosComp) )[[1]]  )
+			charout[jc] <- as.character((base2base(out[jc], 10, outBase, binSize = binSize, inTwosComp = TRUE, outTwosComp = inTwosComp) )[[1]]  )
 			}
 			out <- charout 
 	}
@@ -206,7 +208,6 @@ bigShiftR <- function(x, shift = 1,  inBase = 10, outBase = 10, binSize = 32, in
 # what should I do with negative numbers? with 2scomplement numbers? "undefined & thus platform and compiler - dependent."  So I"m gonna convert any 2s comp input to unsigned plus a neg sign and work with that.  
 bigRotate <- function(x, shift,  inBase = 10,binSize = 32, outBase = 10, inTwosComp = TRUE) {
 #default binary size is 32 to match bitwShiftR 	
-# browser()
  shift = floor(shift[1])
  out <- rep('0',times = length(x))  
  for(jj in 1:length(x)) {
@@ -220,13 +221,11 @@ bigRotate <- function(x, shift,  inBase = 10,binSize = 32, outBase = 10, inTwosC
  		bintmp <- strsplit(bintmp,'')[[1]]
  		xlen = length(bintmp)
  	# now rotate the bits.	
-# 	browser()
  		otmp  <- unlist(paste0(c(bintmp[ ((1:xlen) + shift -1) %%(xlen) + 1]),collapse=''))
  		out[jj] <- base2base(otmp, 2, outBase, binSize=binSize, outTwosComp = FALSE, classOut = "character")[[1]]
  		if(!isPos) out[jj] <- paste0('-',out[jj], collapse='')
  	}	
 # provide output in source 'inBase'
-# browser()
 	if(outBase ==10) {
 		if(is(x,'mpfr') || is(x,'mpfr1')) {
 			out <- Rmpfr::.bigz2mpfr(gmp::as.bigz(out))
@@ -256,7 +255,6 @@ buildBinaries <- function(x, y= NULL,inBase, inTwosComp = FALSE, binSize = 32) {
 		ybin <- unlist(base2base(y,inBase,2, inTwosComp = inTwosComp, binSize=binSize, outTwosComp = TRUE ) )
 # if either xbin or ybin is negative, need to keep the LHbit '1' 
 # AND need to fill in with '1' not zeros 		
-#browser()
 		if(!length(xbin) || !length(ybin)) {
 			stop('bad inputs; could not convert.')
 		}

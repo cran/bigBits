@@ -53,7 +53,7 @@ Author and Maintainer:Carl Witthoft \email{carl@witthoft.com}
 \seealso{
 \code{\link[base]{strtoi}}
 \code{\link[base]{as.hexmode}}
-\code{fracB2B}
+\code{\link[bigBits]{fracB2B}}
 }
 \examples{
 (base2base(12.4e1,10,16))
